@@ -146,7 +146,7 @@ class TaskExecutor
 
 protected
   def self.generate_active_record_params
-    db_string = ENV['DATASIFT_DB']
+    db_string = ENV['DATABASE_URL']
     config = {}
     keys = [:adapter, :username, :password, :host, :port, :database]
     db_string.match(/(postgres):\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)$/).captures.each_with_index do |val, i|
@@ -155,7 +155,7 @@ protected
     config[:host] = config[:host] + ":" + config.delete(:port)
     @ar_config = config
     @ar_config[:adapter] = "postgresql"
-    @ar_config[:host] = ""
+    # @ar_config[:host] = ""
   end
 
   def log(time, task, command, account, identity, index, index_id, key, value)
