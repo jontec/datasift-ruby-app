@@ -152,7 +152,8 @@ protected
     db_string.match(/(postgres):\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)$/).captures.each_with_index do |val, i|
       config[keys[i]] = val
     end
-    config[:host] = config[:host] + ":" + config.delete(:port)
+    config[:host] = config[:host]
+    config[:port] = config[:port]
     @ar_config = config
     @ar_config[:adapter] = "postgresql"
     # @ar_config[:host] = ""
