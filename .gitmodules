@@ -1,0 +1,3 @@
+[submodule "datasift-ruby-utils"]
+	path = datasift-ruby-utils
+	url = https://github.com/jontec/datasift-ruby-utils

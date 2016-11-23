@@ -1,0 +1,52 @@
+#!/usr/bin/ruby
+require 'yaml'
+require 'active_support'
+require 'active_support/core_ext/hash/keys.rb'
+require_relative '../task_executor'
+require_relative '../models/configuration'
+require_relative '../models/transaction_log'
+require 'open3'
+
+OneOffDyno = true
+
+def log(task_name, task, stderr)
+  log = TransactionLog.new({ time: Time.now, task: task_name, command: "execute", account: task[:account], identity: task[:identity], index: task[:index], key: "tick-error", value: stderr })
+  log.save
+end
+
+unless OneOffDyno
+  tasks = YAML.load_file("../tasks.yml")
+  tasks.deep_symbolize_keys!
+else
+  TaskExecutor.initialize_active_record
+  task_record = Configuration.find_by_name("tasks")
+  puts task_record.inspect
+  tasks = task_record.data if task_record
+  tasks ||= {}
+end
+
+# decide which tasks to run based on the time
+if Time.now.min > 57 || Time.now.min < 3
+  # run hourly tasks
+  tasks[:stability] ||= []
+  tasks[:stability].each do |task|
+    puts "running: `ruby task_manager.rb stability execute #{ task[:account] }:#{ task[:identity] } #{ task[:index] }`"
+    stdout, stderr, status = Open3.capture3("ruby task_manager.rb stability execute #{ task[:account] }:#{ task[:identity] } #{ task[:index] }")
+    if OneOffDyno && status.exitstatus != 0
+      log "stability", task, stderr.strip
+    end
+  end
+end
+
+# run any minute denominated tasks
+#   > super_public
+
+exit unless tasks[:super_public]
+
+tasks[:super_public].each do |task|
+  puts "running: `ruby task_manager.rb super_public execute #{ task[:account] }:#{ task[:identity] } #{ task[:index] }`"
+  stdout, stderr, status = Open3.capture3("ruby task_manager.rb super_public execute #{ task[:account] }:#{ task[:identity] } #{ task[:index] }")
+  if OneOffDyno && status.exitstatus != 0
+    log "super_public", task, stderr.strip
+  end
+end
