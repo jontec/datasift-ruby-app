@@ -41,11 +41,13 @@ class TaskExecutor
     @task, @command = :stability, :execute
     # Implement stability in single file for all indexes
     # File.mkdir("db/stability") unless File.exists?("db/stability")
-    stability_filename = "data/stability.csv"
-    file_exists = File.exists?(stability_filename)
-    file = File.open(stability_filename, "a+")
+    unless @db
+      stability_filename = "data/stability.csv"
+      file_exists = File.exists?(stability_filename)
+      file = File.open(stability_filename, "a+")
 
-    file.puts CSV.generate_line ["account", "identity", "name", "time", "obs_time", "interactions", "unique_authors"] unless file_exists
+      file.puts CSV.generate_line ["account", "identity", "name", "time", "obs_time", "interactions", "unique_authors"] unless file_exists
+    end
 
     # Implement synchronized timing
     time = Time.gm(@time.year, @time.month, @time.day, @time.hour, 0, 0)
@@ -82,6 +84,7 @@ class TaskExecutor
       record :daily_volume, daily_volume
       record :current_volume, current_volume
     end
+    file.close unless @db
     Measurement.import(measurements) if @db && !measurements.empty?
     @task, @command, @index = nil, nil, nil
     flush_log
