@@ -112,7 +112,7 @@ class TaskExecutor
         response = @client.sample('', record_count, nil, nil, csdl_filter, index_id)
       rescue => e
         record :pylon_sample_error, e
-        return
+        break
       end
       if response[:data]
         consumed = response[:data][:interactions].length
@@ -121,7 +121,7 @@ class TaskExecutor
           # collection.insert_many(response[:data][:interactions])
         rescue => e
           record :mongo_load_error, e
-          return
+          break
         else
           record :mongo_load_success 
         end
