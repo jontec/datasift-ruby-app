@@ -95,7 +95,7 @@ class TaskExecutor
     begin
       mongo_client = Mongo::Client.new("mongodb://#{ mongo[:username] }:#{ mongo[:password] }@#{ mongo[:host] }/#{ mongo[:database] }")
     rescue => e
-      record :mongo_connection_error, e
+      record :mongo_connection_error, e.inspect
       return
     else
       record :mongo_connection_success
@@ -111,7 +111,7 @@ class TaskExecutor
       begin
         response = @client.sample('', record_count, nil, nil, csdl_filter, index_id)
       rescue => e
-        record :pylon_sample_error, e
+        record :pylon_sample_error, e.inspect
         break
       end
       if response[:data]
@@ -120,7 +120,7 @@ class TaskExecutor
           collection.insert_one({ interactions: response[:data][:interactions], count: consumed, timestamp: Time.now.to_i })
           # collection.insert_many(response[:data][:interactions])
         rescue => e
-          record :mongo_load_error, e
+          record :mongo_load_error, e.inspect
           break
         else
           record :mongo_load_success 
